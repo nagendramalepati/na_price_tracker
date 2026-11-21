@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Price Tracker</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --card: #ffffff; --text: #16181d; --muted: #646b78; --border: #e3e6eb;
+    --accent: #2f6fed; --good: #12805c; --good-bg: #e3f5ee; --bad: #c2410c; --bad-bg: #fdeee5;
+    --neutral-bg: #eef1f6; --target: #12805c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1115; --card: #171a21; --text: #e8eaee; --muted: #9aa1ad; --border: #2a2f3a;
+      --accent: #6c9bff; --good: #4fd1a1; --good-bg: #123328; --bad: #ff9a66; --bad-bg: #3a2216;
+      --neutral-bg: #222733; --target: #4fd1a1;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1115; --card: #171a21; --text: #e8eaee; --muted: #9aa1ad; --border: #2a2f3a;
+    --accent: #6c9bff; --good: #4fd1a1; --good-bg: #123328; --bad: #ff9a66; --bad-bg: #3a2216;
+    --neutral-bg: #222733; --target: #4fd1a1;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 20px; }
+  h1 { font-size: 22px; margin: 0; }
+  .updated { color: var(--muted); font-size: 13px; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr)); }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
+  .top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+  .name { font-weight: 600; color: var(--text); text-decoration: none; overflow-wrap: anywhere; }
+  .name:hover { color: var(--accent); }
+  .badge { flex: none; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; background: var(--neutral-bg); color: var(--muted); }
+  .badge.target { background: var(--good-bg); color: var(--good); }
+  .badge.error { background: var(--bad-bg); color: var(--bad); }
+  .price { font-size: 28px; font-weight: 700; margin: 8px 0 2px; font-variant-numeric: tabular-nums; }
+  .stats { display: flex; flex-wrap: wrap; gap: 4px 16px; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+  .stats b { color: var(--text); font-weight: 600; }
+  .chart { position: relative; height: 180px; margin-top: 12px; }
+  .err { margin-top: 10px; font-size: 13px; color: var(--bad); }
+  .meta { margin-top: 10px; font-size: 12px; color: var(--muted); }
+  .empty { text-align: center; color: var(--muted); padding: 48px 16px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Price Tracker</h1>
+    <span class="updated" id="updated"></span>
+  </header>
+  <div class="grid" id="grid"></div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const fmt = (sym, v) => v == null ? "—" : sym + Number(v).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const when = iso => iso ? new Date(iso).toLocaleString(undefined, {dateStyle: "medium", timeStyle: "short"}) : "never";
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+const BADGES = { target: "Target reached", tracking: "Tracking", error: "Check failed", ended: "Ended" };
+
+async function load() {
+  const grid = document.getElementById("grid");
+  let data;
+  try {
+    const r = await fetch("data.json?t=" + Date.now());
+    if (!r.ok) throw new Error(r.status);
+    data = await r.json();
+  } catch {
+    grid.innerHTML = '<div class="empty">No price data yet. It appears after the first check runs.</div>';
+    return;
+  }
+  document.getElementById("updated").textContent = "Last run: " + when(data.updated);
+  const products = data.products || [];
+  if (!products.length) {
+    grid.innerHTML = '<div class="empty">No products yet. Add some to products.json.</div>';
+    return;
+  }
+  grid.innerHTML = "";
+  products.forEach((p, i) => {
+    const sym = p.currency_symbol || "";
+    const prices = (p.history || []).map(h => h.price);
+    const lo = prices.length ? Math.min(...prices) : null;
+    const hi = prices.length ? Math.max(...prices) : null;
+    const status = p.status || "tracking";
+    const card = document.createElement("section");
+    card.className = "card";
+    card.innerHTML = `
+      <div class="top">
+        <a class="name" href="${esc(p.url)}" target="_blank" rel="noopener">${esc(p.name)}</a>
+        <span class="badge ${esc(status)}">${BADGES[status] || esc(status)}</span>
+      </div>
+      <div class="price">${fmt(sym, p.last_price)}</div>
+      <div class="stats">
+        <span>Target <b>${fmt(sym, p.target_price)}</b></span>
+        <span>Lowest <b>${fmt(sym, lo)}</b></span>
+        <span>Highest <b>${fmt(sym, hi)}</b></span>
+        <span>Checks <b>${prices.length}</b></span>
+      </div>
+      ${prices.length > 0 ? `<div class="chart"><canvas id="c${i}" aria-label="Price history for ${esc(p.name)}"></canvas></div>` : ""}
+      ${status === "error" && p.last_error ? `<div class="err">Last check failed: ${esc(p.last_error)}</div>` : ""}
+      <div class="meta">Checked ${when(p.last_checked)} · every ${esc(p.check_every_hours)}h${p.track_until ? " · until " + esc(p.track_until) : ""}</div>`;
+    grid.appendChild(card);
+    if (prices.length && window.Chart) drawChart(document.getElementById("c" + i), p, sym);
+  });
+}
+
+function drawChart(canvas, p, sym) {
+  const labels = p.history.map(h => new Date(h.t).toLocaleDateString(undefined, {month: "short", day: "numeric", hour: "numeric"}));
+  const datasets = [{
+    label: "Price", data: p.history.map(h => h.price),
+    borderColor: css("--accent"), backgroundColor: css("--accent"),
+    borderWidth: 2, pointRadius: p.history.length > 40 ? 0 : 2.5, tension: 0.25, stepped: false,
+  }];
+  if (p.target_price != null) datasets.push({
+    label: "Target", data: p.history.map(() => p.target_price),
+    borderColor: css("--target"), borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0,
+  });
+  new Chart(canvas, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${fmt(sym, c.parsed.y)}` } },
+      },
+      scales: {
+        x: { ticks: { color: css("--muted"), maxTicksLimit: 5, maxRotation: 0 }, grid: { display: false } },
+        y: { ticks: { color: css("--muted"), callback: v => fmt(sym, v) }, grid: { color: css("--border") } },
+      },
+    },
+  });
+}
+load();
+</script>
+</body>
+</html>

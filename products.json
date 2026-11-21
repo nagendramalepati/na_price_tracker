@@ -1,0 +1,27 @@
+{
+  "settings": {
+    "timezone": "Australia/Sydney",
+    "currency_symbol": "A$"
+  },
+  "products": [
+    {
+      "name": "ABC Gold Tael Cast Bar 37.5g (estimated price)",
+      "url": "https://www.abcbullion.com/store/gold/product/gabgtael375g-abc-gold-tael-cast-bar",
+      "metal": "XAU",
+      "currency": "AUD",
+      "grams": 37.5,
+      "premium_percent": 6.25,
+      "target_price": 6700,
+      "check_every_hours": 3,
+      "track_until": "2027-02-28"
+    },
+    {
+      "name": "dreame L40 Ultra CE Robot Vacuum",
+      "url": "https://www.amazon.com.au/dp/B0FJG66CD1?th=1",
+      "target_price": 400,
+      "check_every_hours": 6,
+      "track_until": "2027-02-28",
+      "notify_on_any_drop": true
+    }
+  ]
+}
