@@ -10,7 +10,7 @@
       "metal": "XAU",
       "currency": "AUD",
       "grams": 37.5,
-      "premium_percent": 6.25,
+      "premium_percent": 6.33,
       "target_price": 6700,
       "check_every_hours": 0.5,
       "track_until": "2027-02-28"
