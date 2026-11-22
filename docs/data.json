@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-21T22:26:30+00:00",
+ "updated": "2026-11-22T02:40:40+00:00",
  "products": [
   {
    "history": [
@@ -26,6 +26,10 @@
     {
      "t": "2026-11-21T22:26:30+00:00",
      "price": 6833.47
+    },
+    {
+     "t": "2026-11-22T02:40:40+00:00",
+     "price": 6833.47
     }
    ],
    "alerted": false,
@@ -36,8 +40,8 @@
    "currency_symbol": "A$",
    "check_every_hours": 0.5,
    "track_until": "2027-02-28",
-   "last_attempt": "2026-11-21T22:26:30+00:00",
-   "last_checked": "2026-11-21T22:26:30+00:00",
+   "last_attempt": "2026-11-22T02:40:40+00:00",
+   "last_checked": "2026-11-22T02:40:40+00:00",
    "last_price": 6833.47,
    "last_error": null,
    "method": "XAU spot 5,330.44 AUD/oz + 6.33% premium",
