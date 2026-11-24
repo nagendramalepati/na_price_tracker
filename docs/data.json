@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-24T01:55:17+00:00",
+ "updated": "2026-11-24T12:31:57+00:00",
  "products": [
   {
    "history": [
@@ -54,6 +54,10 @@
     {
      "t": "2026-11-24T01:55:17+00:00",
      "price": 7089.05
+    },
+    {
+     "t": "2026-11-24T12:31:57+00:00",
+     "price": 7011.67
     }
    ],
    "alerted": false,
@@ -64,11 +68,11 @@
    "currency_symbol": "A$",
    "check_every_hours": 0.5,
    "track_until": "2027-02-28",
-   "last_attempt": "2026-11-24T01:55:17+00:00",
-   "last_checked": "2026-11-24T01:55:17+00:00",
-   "last_price": 7089.05,
+   "last_attempt": "2026-11-24T12:31:57+00:00",
+   "last_checked": "2026-11-24T12:31:57+00:00",
+   "last_price": 7011.67,
    "last_error": null,
-   "method": "XAU spot 5,529.81 AUD/oz + 6.33% premium",
+   "method": "XAU spot 5,469.45 AUD/oz + 6.33% premium",
    "status": "tracking"
   },
   {
@@ -87,14 +91,14 @@
     }
    ],
    "alerted": false,
-   "failures": 3,
+   "failures": 4,
    "name": "dreame L40 Ultra CE Robot Vacuum",
    "url": "https://www.amazon.com.au/dp/B0FJG66CD1?th=1",
    "target_price": 400,
    "currency_symbol": "A$",
    "check_every_hours": 6.0,
    "track_until": "2027-02-28",
-   "last_attempt": "2026-11-24T01:55:17+00:00",
+   "last_attempt": "2026-11-24T12:31:57+00:00",
    "last_checked": "2026-11-22T18:04:14+00:00",
    "last_price": 69999.0,
    "last_error": "website showed a captcha / bot check",
