@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-25T05:27:31+00:00",
+ "updated": "2026-11-25T16:08:17+00:00",
  "products": [
   {
    "history": [
@@ -66,9 +66,13 @@
     {
      "t": "2026-11-25T05:27:31+00:00",
      "price": 6848.37
+    },
+    {
+     "t": "2026-11-25T16:08:17+00:00",
+     "price": 6661.74
     }
    ],
-   "alerted": false,
+   "alerted": true,
    "failures": 0,
    "name": "ABC Gold Tael Cast Bar 37.5g (estimated price)",
    "url": "https://www.abcbullion.com/store/gold/product/gabgtael375g-abc-gold-tael-cast-bar",
@@ -76,12 +80,12 @@
    "currency_symbol": "A$",
    "check_every_hours": 0.5,
    "track_until": "2027-02-28",
-   "last_attempt": "2026-11-25T05:27:31+00:00",
-   "last_checked": "2026-11-25T05:27:31+00:00",
-   "last_price": 6848.37,
+   "last_attempt": "2026-11-25T16:08:17+00:00",
+   "last_checked": "2026-11-25T16:08:17+00:00",
+   "last_price": 6661.74,
    "last_error": null,
-   "method": "XAU spot 5,342.07 AUD/oz + 6.33% premium",
-   "status": "tracking"
+   "method": "XAU spot 5,196.48 AUD/oz + 6.33% premium",
+   "status": "target"
   },
   {
    "history": [
@@ -99,14 +103,14 @@
     }
    ],
    "alerted": false,
-   "failures": 6,
+   "failures": 7,
    "name": "dreame L40 Ultra CE Robot Vacuum",
    "url": "https://www.amazon.com.au/dp/B0FJG66CD1?th=1",
    "target_price": 400,
    "currency_symbol": "A$",
    "check_every_hours": 6.0,
    "track_until": "2027-02-28",
-   "last_attempt": "2026-11-25T05:27:31+00:00",
+   "last_attempt": "2026-11-25T16:08:17+00:00",
    "last_checked": "2026-11-22T18:04:14+00:00",
    "last_price": 69999.0,
    "last_error": "website showed a captcha / bot check",
