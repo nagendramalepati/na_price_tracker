@@ -6,8 +6,12 @@ can stay closed.
 
 ## How it works
 
-- **GitHub Actions** runs `price_tracker.py` every hour. Each product is checked only when
+- **GitHub Actions** runs `price_tracker.py` every 30 minutes. GitHub's own cron schedule is
+  unreliable (it often skips runs for hours), so each workflow run stays alive for ~5.5 hours,
+  checks every 30 minutes itself, then starts the next run. Each product is checked only when
   its own `check_every_hours` is due, and it stops after `track_until`.
+- To pause tracking, cancel the running "Track prices" workflow on the Actions tab (a cancelled
+  run doesn't start the next one). Click "Run workflow" to start it again.
 - Prices are saved to `docs/data.json`. The dashboard (`docs/index.html`) is served by
   **GitHub Pages**.
 - **Telegram** sends you a message when a price drops to or below `target_price`.
@@ -15,7 +19,7 @@ can stay closed.
 ## Adding a product
 
 Edit `products.json`. You can do this on github.com, even from your phone, by opening the
-file and clicking the ✏️ pencil icon. Each product is checked right after you save.
+file and clicking the ✏️ pencil icon. Each product is checked within 30 minutes of saving.
 
 ```json
 {
@@ -34,9 +38,10 @@ file and clicking the ✏️ pencil icon. Each product is checked right after yo
 | `name` | Any label you like |
 | `url` | Product page link |
 | `target_price` | Alert when the price is at or below this |
-| `check_every_hours` | How often to check this product (minimum 1) |
+| `check_every_hours` | How often to check this product (minimum 0.5 = 30 minutes) |
 | `track_until` | Last day to track (YYYY-MM-DD). You get a summary message when it ends. |
 | `notify_on_any_drop` | Optional. `true` also alerts on every price drop. |
+| `notify_every_check` | Optional. `true` sends the latest price to Telegram after every successful check. |
 | `currency_symbol` | Optional. Overrides the default in `settings`. |
 | `selector` | Optional. Only needed if the price isn't found automatically (see below). |
 

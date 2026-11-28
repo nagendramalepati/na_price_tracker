@@ -118,44 +118,6 @@
    "last_error": null,
    "method": "XAU spot 5,488.87 AUD/oz + 6.33% premium",
    "status": "tracking"
-  },
-  {
-   "history": [
-    {
-     "t": "2026-11-21T01:14:55+00:00",
-     "price": 449.99
-    },
-    {
-     "t": "2026-11-21T22:26:30+00:00",
-     "price": 64900.0
-    },
-    {
-     "t": "2026-11-22T18:04:14+00:00",
-     "price": 69999.0
-    },
-    {
-     "t": "2026-11-26T08:55:59+00:00",
-     "price": 42999.0
-    },
-    {
-     "t": "2026-11-27T10:55:25+00:00",
-     "price": 42999.0
-    }
-   ],
-   "alerted": false,
-   "failures": 3,
-   "name": "dreame L40 Ultra CE Robot Vacuum",
-   "url": "https://www.amazon.com.au/dp/B0FJG66CD1?th=1",
-   "target_price": 400,
-   "currency_symbol": "A$",
-   "check_every_hours": 6.0,
-   "track_until": "2027-02-28",
-   "last_attempt": "2026-11-28T10:55:03+00:00",
-   "last_checked": "2026-11-27T10:55:25+00:00",
-   "last_price": 42999.0,
-   "last_error": "website showed a captcha / bot check",
-   "method": "site selector span.a-price span.a-offscreen",
-   "status": "error"
   }
  ]
 }

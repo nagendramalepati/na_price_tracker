@@ -28,7 +28,7 @@ DATA_FILE = ROOT / "docs" / "data.json"
 
 MAX_HISTORY_POINTS = 2000      # per product, keeps the data file small
 FAILURES_BEFORE_WARNING = 3    # consecutive failed checks before a Telegram warning
-DUE_SLACK = timedelta(minutes=20)  # GitHub's hourly schedule can run a little late
+DUE_SLACK = timedelta(minutes=20)  # a check that runs a little early still counts as due
 
 HEADERS = {
     "User-Agent": (
@@ -245,6 +245,26 @@ def money(symbol, value):
     return f"{symbol}{value:,.2f}" if value is not None else "—"
 
 
+def price_update_message(name, symbol, price, prev, target, method, now, tz):
+    """Routine 'latest price' message sent after every check (notify_every_check)."""
+    if prev:
+        diff = price - prev
+        arrow = "🔺" if diff > 0 else "🔻" if diff < 0 else "➖"
+        change = f"{arrow} {'+' if diff > 0 else ''}{money(symbol, diff).replace(symbol + '-', '-' + symbol)} ({diff / prev:+.2%})"
+    else:
+        change = "first check"
+    lines = [
+        f"💰 <b>{esc(name)}</b>",
+        f"Now <b>{money(symbol, price)}</b> · {change}",
+    ]
+    if target is not None:
+        gap = price - float(target)
+        lines.append(f"Target {money(symbol, float(target))} · "
+                     + (f"{money(symbol, gap)} above" if gap > 0 else "✅ at or below target"))
+    lines.append(f"<i>{esc(method)} · {now.astimezone(tz):%d %b %H:%M}</i>")
+    return "\n".join(lines)
+
+
 # ---------------------------------------------------------------- main run
 
 def load_json(path, default):
@@ -328,8 +348,9 @@ def run():
 
         hit = target is not None and price <= float(target)
         rec["status"] = "target" if hit else "tracking"
+        sent = False
         if hit and not rec.get("alerted"):
-            send_telegram(
+            sent = send_telegram(
                 f"🔔 <b>Price alert!</b> {esc(name)}\n"
                 f"Now <b>{money(symbol, price)}</b> (your target: {money(symbol, float(target))})\n"
                 f"{esc(url)}"
@@ -338,10 +359,12 @@ def run():
         elif not hit:
             rec["alerted"] = False  # re-arm, so you're alerted again if it drops back down
             if item.get("notify_on_any_drop") and prev and price < prev:
-                send_telegram(
+                sent = send_telegram(
                     f"📉 <b>Price dropped</b>: {esc(name)}\n"
                     f"{money(symbol, prev)} → <b>{money(symbol, price)}</b>\n{esc(url)}"
                 )
+        if item.get("notify_every_check") and not sent:
+            send_telegram(price_update_message(name, symbol, price, prev, target, method, now, tz))
         out.append(rec)
 
     DATA_FILE.parent.mkdir(parents=True, exist_ok=True)

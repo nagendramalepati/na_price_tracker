@@ -1,15 +1,24 @@
 name: Track prices
 
+# GitHub's cron scheduler is best-effort and was only starting this workflow every
+# 6-11 hours, no matter what interval the cron line asked for. So instead of relying
+# on it, each run stays alive for ~5.5 hours and runs a check every 30 minutes itself,
+# then starts the next run (self-chaining). The cron below is only a safety net that
+# restarts the chain if it ever breaks.
+
 on:
   schedule:
-    - cron: "17,47 * * * *"   # every 30 min; each product is only checked when its own interval is due
+    - cron: "7 */3 * * *"      # backup restart; the loop below does the 30-min timing
   workflow_dispatch:           # "Run workflow" button on GitHub
   push:
     paths: [products.json]     # check new products right after you add them
 
 permissions:
-  contents: write
+  contents: write              # commit docs/data.json
+  actions: write               # start the next run of this workflow
 
+# Only one run checks at a time. A new trigger waits (pending) until the current run
+# finishes, and extra pending triggers replace each other, so the chain never doubles up.
 concurrency:
   group: price-tracker
   cancel-in-progress: false
@@ -17,7 +26,10 @@ concurrency:
 jobs:
   track:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 350       # GitHub's hard limit is 360
+    env:
+      LOOP_MINUTES: 330        # how long one run keeps checking before handing over
+      CHECK_EVERY_MINUTES: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -28,21 +40,36 @@ jobs:
 
       - run: pip install -r requirements.txt
 
-      - name: Check prices
+      - name: Check prices every ${{ env.CHECK_EVERY_MINUTES }} minutes
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-        run: python price_tracker.py
-
-      - name: Save price history
         run: |
           git config user.name "price-tracker-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/data.json
-          if git diff --cached --quiet; then
-            echo "No changes"
-          else
-            git commit -m "Update prices"
-            git pull --rebase
-            git push
-          fi
+
+          start=$(date +%s)
+          stop=$(( start + LOOP_MINUTES * 60 ))
+          next=$start
+          while :; do
+            echo "::group::Check at $(date -u +%FT%TZ)"
+            git pull --rebase --quiet || true        # pick up edits to products.json
+            python price_tracker.py || echo "price_tracker.py failed, will retry next round"
+            git add docs/data.json
+            if ! git diff --cached --quiet; then
+              git commit --quiet -m "Update prices"
+              git pull --rebase --quiet && git push --quiet || echo "push failed, will retry next round"
+            fi
+            echo "::endgroup::"
+
+            next=$(( next + CHECK_EVERY_MINUTES * 60 ))
+            [ "$next" -ge "$stop" ] && break
+            wait=$(( next - $(date +%s) ))
+            [ "$wait" -gt 0 ] && sleep "$wait"
+          done
+
+      - name: Start the next run
+        if: ${{ !cancelled() }}   # cancelling a run by hand stops the chain
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run track-prices.yml --ref "${{ github.ref_name }}"
